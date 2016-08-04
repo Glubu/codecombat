@@ -179,7 +179,7 @@ module.exports = Surface = class Surface extends CocoClass
     @updateState true
     @drawCurrentFrame()
     createjs.Ticker.addEventListener 'tick', @tick
-    Backbone.Mediator.publish 'level:started', {}
+    @gameUIState.trigger 'level:started', {}
 
   #- Update loop
 

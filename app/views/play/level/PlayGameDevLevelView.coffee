@@ -109,8 +109,9 @@ module.exports = class PlayGameDevLevelView extends RootView
 
   onClickPlayButton: ->
     @god.createWorld(@spells, false, true)
-    Backbone.Mediator.publish('playback:real-time-playback-started', {})
-    Backbone.Mediator.publish('level:set-playing', {playing: true})
+    
+    @surface.onRealTimePlaybackStarted()
+    @surface.onSetPlaying()
     action = if @state.get('playing') then 'Play GameDev Level - Restart Level' else 'Play GameDev Level - Start Level'
     window.tracker?.trackEvent(action, @eventProperties, ['Mixpanel'])
     @state.set('playing', true)
@@ -133,6 +134,7 @@ module.exports = class PlayGameDevLevelView extends RootView
       @$el.find('#info-col').css('height', @state.get('surfaceHeight'))
 
   onNewWorld: (e) ->
+    return unless e.god is @god
     if @goalManager.checkOverallStatus() is 'success'
       modal = new GameDevVictoryModal({ shareURL: @state.get('shareURL'), @eventProperties })
       @openModalView(modal)

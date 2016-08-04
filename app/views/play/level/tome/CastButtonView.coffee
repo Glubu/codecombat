@@ -76,7 +76,7 @@ module.exports = class CastButtonView extends CocoView
     @updateReplayability()
 
   onClickGameDevPlayButton: ->
-    Backbone.Mediator.publish 'tome:manual-cast', {realTime: true}
+    @trigger 'play-game-dev'
 
   onDoneButtonClick: (e) ->
     return if @options.level.hasLocalChanges()  # Don't award achievements when beating level changed in level editor

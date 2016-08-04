@@ -45,6 +45,7 @@ ContactModal = require 'views/core/ContactModal'
 HintsView = require './HintsView'
 HintsState = require './HintsState'
 WebSurfaceView = require './WebSurfaceView'
+PlayGameDevLevelModal = require './PlayGameDevLevelModal'
 
 PROFILE_ME = false
 
@@ -70,7 +71,6 @@ module.exports = class PlayLevelView extends RootView
     'god:infinite-loop': 'onInfiniteLoop'
     'level:reload-from-data': 'onLevelReloadFromData'
     'level:reload-thang-type': 'onLevelReloadThangType'
-    'level:started': 'onLevelStarted'
     'level:loading-view-unveiling': 'onLoadingViewUnveiling'
     'level:loading-view-unveiled': 'onLoadingViewUnveiled'
     'level:loaded': 'onLevelLoaded'
@@ -106,6 +106,7 @@ module.exports = class PlayLevelView extends RootView
     @opponentSessionID = @getQueryVariable('opponent')
     @opponentSessionID ?= @options.opponent
     @gameUIState = new GameUIState()
+    @listenTo @gameUIState, 'level:started', @onLevelStarted
 
     $(window).on 'resize', @onWindowResize
 
@@ -272,6 +273,8 @@ module.exports = class PlayLevelView extends RootView
   insertSubviews: ->
     @hintsState = new HintsState({ hidden: true }, { @session, @level })
     @insertSubView @tome = new TomeView { @levelID, @session, @otherSession, thangs: @world?.thangs ? [], @supermodel, @level, @observing, @courseID, @courseInstanceID, @god, @hintsState }
+    @listenTo @tome, 'play-game-dev', ->
+      @openModalView(new PlayGameDevLevelModal({ @supermodel }, @level.id, @session.id ))
     @insertSubView new LevelPlaybackView session: @session, level: @level unless @level.isType('web-dev')
     @insertSubView new GoalsView {level: @level}
     @insertSubView new LevelFlagsView levelID: @levelID, world: @world if @$el.hasClass 'flags'
@@ -381,6 +384,7 @@ module.exports = class PlayLevelView extends RootView
 
   onLevelStarted: ->
     return unless @surface? or @webSurface?
+    return unless @loadingView
     @loadingView.showReady()
     @trackLevelLoadEnd()
     if window.currentModal and not window.currentModal.destroyed and window.currentModal.constructor isnt VictoryModal
@@ -613,6 +617,7 @@ module.exports = class PlayLevelView extends RootView
   # Dynamic sound loading
 
   onNewWorld: (e) ->
+    return unless e.god is @god
     return if @headless
     scripts = @world.scripts  # Since these worlds don't have scripts, preserve them.
     @world = e.world
